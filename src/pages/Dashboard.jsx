@@ -1,21 +1,27 @@
 import { useState, useEffect } from 'react'
 import { Users, UserCheck, CalendarCheck } from 'lucide-react'
-import { mockMembers } from '../data/mockMembers'
+import { useMembers } from '../context/MembersContext'
+import { useAttendance } from '../context/AttendanceContext'
 import { ROLES } from '../constants/roles'
 
 export default function Dashboard() {
+  
+  const { members } = useMembers() 
+  const { records } = useAttendance()
+
   const [stats, setStats] = useState({ totalMiembros: 0, activos: 0, asistenciasMes: 0, practicantes: 0, coordinadores: 0 })
 
   useEffect(() => {
     setStats({
-      totalMiembros: mockMembers.length,
-      activos: mockMembers.filter((m) => m.estado === 'ACTIVO').length,
-      asistenciasMes: 42,
-      practicantes: mockMembers.filter((m) => m.rol === ROLES.PRACTICANTE.id).length,
-      coordinadores: mockMembers.filter((m) => m.rol === ROLES.COORDINADOR.id).length,
+      
+      totalMiembros: members.length,
+      activos: members.filter((m) => m.estado === 'ACTIVO').length,
+      asistenciasMes: records.length,
+      practicantes: members.filter((m) => m.rol === ROLES.PRACTICANTE.id).length,
+      coordinadores: members.filter((m) => m.rol === ROLES.COORDINADOR.id).length,
     })
-  }, [])
-
+  
+  }, [members, records])
   const cards = [
     { label: 'TOTAL MIEMBROS', value: stats.totalMiembros, icon: Users },
     { label: 'ACTIVOS HOY', value: stats.activos, icon: UserCheck },
