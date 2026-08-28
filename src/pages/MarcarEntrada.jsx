@@ -1,8 +1,7 @@
 import { useState } from 'react'
 import { CheckCircle2, Clock, PenLine, ScanLine, Search, LogIn, LogOut as LogOutIcon } from 'lucide-react'
-import { useMembers } from '../context/MembersContext'
+import { useMembers, useCurrentUser } from '../context/MembersContext'
 import { useAttendance, todayISO } from '../context/AttendanceContext'
-import { ROLES } from '../constants/roles'
 
 export default function MarcarEntrada() {
   const { members } = useMembers()
@@ -15,7 +14,7 @@ export default function MarcarEntrada() {
   const [search, setSearch] = useState('')
 
   // Placeholder hasta que exista sesión real: tomamos al primer Coordinador como "usuario actual"
-  const currentUser = members.find((m) => m.rol === ROLES.COORDINADOR.id) || members[0]
+  const currentUser = useCurrentUser()
   const myRecord = currentUser ? getTodayRecord(currentUser.id) : null
 
   const entradasHoy = records.filter((r) => r.fecha === todayISO()).length

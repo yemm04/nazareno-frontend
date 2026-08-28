@@ -21,7 +21,7 @@ export default function Sidebar({ userName = 'Administrador', userRole = 'Coordi
   const navigate = useNavigate() 
 
   return (
-    <aside className="w-64 min-h-screen bg-purple-950 text-white flex flex-col">
+    <aside className="w-64 min-h-screen bg-purple-950 text-white flex flex-col print:hidden">
       <div className="px-6 py-6 flex items-center gap-3 border-b border-white/10">
         <img src="/logo-nazareno.png" alt="El Nazareno" className="w-10 h-10 object-contain" />
         <div>

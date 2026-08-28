@@ -2,7 +2,7 @@ import { Bell } from 'lucide-react'
 
 export default function TopHeader({ userName = 'Administrador', userRole = 'Administrador' }) {
   return (
-    <header className="flex items-center justify-between px-8 py-5 bg-white border-b border-gray-100">
+    <header className="flex items-center justify-between px-8 py-5 bg-white border-b border-gray-100 print:hidden">
       <p className="text-gray-500">
         Bienvenido de nuevo, <span className="font-semibold text-gray-800">{userName}</span>
       </p>

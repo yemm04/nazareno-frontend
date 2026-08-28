@@ -32,3 +32,8 @@ export function useMembers() {
   if (!ctx) throw new Error('useMembers debe usarse dentro de <MembersProvider>')
   return ctx
 }
+
+export function useCurrentUser() {
+  const { members } = useMembers()
+  return members.find((m) => m.rol === ROLES.COORDINADOR.id) || members[0] || null
+}
