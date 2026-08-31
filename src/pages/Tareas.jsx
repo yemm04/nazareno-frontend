@@ -1,30 +1,45 @@
 import { useState } from 'react'
 import { Plus, Clock, Trash2, CheckCircle2 } from 'lucide-react'
 import { useTasks } from '../context/TasksContext'
-import { useMembers, useCurrentUser } from '../context/MembersContext'
+import { useMembers } from '../context/MembersContext'
+import { useAuth, useCurrentUser } from '../context/AuthContext'
 import { formatFecha } from '../utils/dates'
 
 const TIEMPOS = ['15 min', '30 min', '1 hora', '2 horas', 'Medio día', 'Todo el día']
 const emptyForm = { titulo: '', descripcion: '', fecha: new Date().toISOString().slice(0, 10), tiempoEstimado: TIEMPOS[0] }
 
 export default function Tareas() {
-  const { tasks, addTask, takeTask, completeTask, removeTask } = useTasks()
+  const { tasks, loading, addTask, takeTask, completeTask, removeTask } = useTasks()
   const { members } = useMembers()
+  const { user } = useAuth()
   const currentUser = useCurrentUser()
+  const isAdmin = user?.rol === 'ADMIN'
 
   const [tab, setTab] = useState('pendientes')
   const [showForm, setShowForm] = useState(false)
   const [form, setForm] = useState(emptyForm)
+  const [saving, setSaving] = useState(false)
+
+  if (loading) {
+    return <p className="text-center text-gray-400 py-20">Cargando tareas...</p>
+  }
 
   const visibleTasks = tasks.filter((t) => (tab === 'pendientes' ? t.estado === 'PENDIENTE' : t.estado === 'COMPLETADA'))
   const handleChange = (field) => (e) => setForm((prev) => ({ ...prev, [field]: e.target.value }))
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     if (!form.titulo.trim()) return
-    addTask(form)
-    setForm(emptyForm)
-    setShowForm(false)
+    setSaving(true)
+    try {
+      await addTask(form)
+      setForm(emptyForm)
+      setShowForm(false)
+    } catch (err) {
+      alert(err.message)
+    } finally {
+      setSaving(false)
+    }
   }
 
   const memberName = (id) => {
@@ -37,15 +52,17 @@ export default function Tareas() {
       <div className="flex items-center justify-between mb-1">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Tareas del día</h1>
-          <p className="text-sm text-gray-400">Elige la tarea en la que trabajarás, o crea una nueva para el equipo.</p>
+          <p className="text-sm text-gray-400">Elige la tarea en la que trabajarás.</p>
         </div>
-        <button onClick={() => setShowForm((v) => !v)} className="flex items-center gap-2 bg-purple-950 hover:bg-purple-900 text-white text-sm font-semibold px-4 py-2.5 rounded-lg">
-          <Plus size={16} />
-          Nueva tarea
-        </button>
+        {isAdmin && (
+          <button onClick={() => setShowForm((v) => !v)} className="flex items-center gap-2 bg-purple-950 hover:bg-purple-900 text-white text-sm font-semibold px-4 py-2.5 rounded-lg">
+            <Plus size={16} />
+            Nueva tarea
+          </button>
+        )}
       </div>
 
-      {showForm && (
+      {isAdmin && showForm && (
         <form onSubmit={handleSubmit} className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 mt-5 space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Título</label>
@@ -69,7 +86,9 @@ export default function Tareas() {
           </div>
           <div className="flex justify-end gap-3 pt-1">
             <button type="button" onClick={() => setShowForm(false)} className="px-4 py-2.5 rounded-lg text-sm font-medium text-gray-500 hover:bg-gray-50">Cancelar</button>
-            <button type="submit" className="bg-purple-950 hover:bg-purple-900 text-white text-sm font-semibold px-5 py-2.5 rounded-lg">Crear tarea</button>
+            <button type="submit" disabled={saving} className="bg-purple-950 hover:bg-purple-900 disabled:opacity-60 text-white text-sm font-semibold px-5 py-2.5 rounded-lg">
+              {saving ? 'Creando...' : 'Crear tarea'}
+            </button>
           </div>
         </form>
       )}
@@ -84,9 +103,11 @@ export default function Tareas() {
           <div key={t.id} className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
             <div className="flex items-start justify-between">
               <h3 className="font-bold text-gray-900">{t.titulo}</h3>
-              <button onClick={() => removeTask(t.id)} className="text-gray-300 hover:text-red-500">
-                <Trash2 size={16} />
-              </button>
+              {isAdmin && (
+                <button onClick={() => removeTask(t.id).catch((err) => alert(err.message))} className="text-gray-300 hover:text-red-500">
+                  <Trash2 size={16} />
+                </button>
+              )}
             </div>
             {t.descripcion && <p className="text-sm text-gray-500 mt-1">{t.descripcion}</p>}
             <div className="flex items-center gap-1.5 text-xs text-gray-400 mt-3">
@@ -103,14 +124,14 @@ export default function Tareas() {
               ) : t.tomadaPor ? (
                 <>
                   <span className="text-sm text-gray-500">Tomada por <strong className="text-gray-800">{memberName(t.tomadaPor)}</strong></span>
-                  <button onClick={() => completeTask(t.id)} className="text-xs font-semibold text-white bg-purple-950 hover:bg-purple-900 px-3.5 py-2 rounded-lg">
+                  <button onClick={() => completeTask(t.id).catch((err) => alert(err.message))} className="text-xs font-semibold text-white bg-purple-950 hover:bg-purple-900 px-3.5 py-2 rounded-lg">
                     Marcar como completada
                   </button>
                 </>
               ) : (
                 <>
                   <span className="text-sm text-gray-400">Nadie ha tomado esta tarea todavía.</span>
-                  <button onClick={() => currentUser && takeTask(t.id, currentUser.id)} className="text-xs font-semibold text-white bg-green-600 hover:bg-green-700 px-3.5 py-2 rounded-lg">
+                  <button onClick={() => currentUser && takeTask(t.id, currentUser.id).catch((err) => alert(err.message))} className="text-xs font-semibold text-white bg-green-600 hover:bg-green-700 px-3.5 py-2 rounded-lg">
                     Tomar tarea
                   </button>
                 </>

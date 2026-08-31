@@ -11,13 +11,17 @@ export const ROLES = {
     prefix: 'C',
     badgeClass: 'bg-amber-100 text-amber-800',
   },
-  // Cuando agreguemos "Docente" o "Ingeniero" más adelante,
-  // solo se añade una entrada aquí — nada más del código cambia.
+  ADMIN: {
+    id: 'ADMIN',
+    label: 'Administrador',
+    prefix: 'A',
+    badgeClass: 'bg-red-100 text-red-800',
+  },
 }
 
-export const ROLE_LIST = Object.values(ROLES)
+export const ROLE_LIST = [ROLES.PRACTICANTE, ROLES.COORDINADOR]
 
 export function getRoleByCodigo(codigo) {
   const prefix = codigo?.charAt(0)?.toUpperCase()
-  return ROLE_LIST.find((r) => r.prefix === prefix) || null
+  return Object.values(ROLES).find((r) => r.prefix === prefix) || null
 }

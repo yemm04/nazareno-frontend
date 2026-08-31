@@ -7,12 +7,16 @@ import { AREAS } from '../data/mockMembers'
 import { formatFecha } from '../utils/dates'
 
 export default function Miembros() {
-  const { members, removeMember } = useMembers()
+  const { members, loading, removeMember } = useMembers()
   const location = useLocation()
   const [successMsg, setSuccessMsg] = useState(location.state?.creado || null)
   const [search, setSearch] = useState('')
   const [roleFilter, setRoleFilter] = useState('TODOS')
   const [areaFilter, setAreaFilter] = useState('TODAS')
+
+  if (loading) {
+    return <p className="text-center text-gray-400 py-20">Cargando miembros...</p>
+  }
 
   const filtered = members.filter((m) => {
     const fullName = `${m.nombre} ${m.apellido}`.toLowerCase()
@@ -23,9 +27,13 @@ export default function Miembros() {
     return matchesSearch && matchesRole && matchesArea
   })
 
-  const handleDelete = (member) => {
+  const handleDelete = async (member) => {
     if (window.confirm(`¿Eliminar a ${member.nombre} ${member.apellido} del sistema?`)) {
-      removeMember(member.id)
+      try {
+        await removeMember(member.id)
+      } catch (err) {
+        alert(err.message)
+      }
     }
   }
 
@@ -109,9 +117,9 @@ export default function Miembros() {
                   </td>
                   <td className="px-5 py-3">
                     <div className="flex items-center justify-end gap-2">
-                      <button className="text-gray-400 hover:text-purple-800" title="Editar (próximamente)">
+                      <Link to={`/miembros/${m.id}/editar`} className="text-gray-400 hover:text-purple-800" title="Editar">
                         <Pencil size={16} />
-                      </button>
+                      </Link>
                       <button onClick={() => handleDelete(m)} className="text-gray-400 hover:text-red-600" title="Eliminar">
                         <Trash2 size={16} />
                       </button>

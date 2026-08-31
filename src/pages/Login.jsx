@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'// <--- NUEVO: 1. Importamos la función para navegar
-import { getRoleByCodigo } from '../constants/roles'
+import { useNavigate } from 'react-router'
+import { useAuth } from '../context/AuthContext'
 
 export default function Login() {
   const [codigo, setCodigo] = useState('')
@@ -8,8 +8,9 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
-  
-  const navigate = useNavigate() // <--- NUEVO: 2. Activamos la función de navegación
+
+  const navigate = useNavigate()
+  const { login } = useAuth()
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -20,22 +21,12 @@ export default function Login() {
       return
     }
 
-    const rol = getRoleByCodigo(codigo)
-    if (!rol) {
-      setError('Creedenciales incorrectas!')
-      return
-    }
-
     setLoading(true)
     try {
-      // Aquí iría tu conexión al backend en el futuro
-      console.log('Login con:', { codigo, password })
-      
-      // <--- NUEVO: 3. Le decimos que si todo sale bien, nos lleve al Dashboard
-      navigate('/dashboard') 
-      
+      const data = await login(codigo, password)
+      navigate(data.rol === 'ADMIN' ? '/dashboard' : '/marcar-entrada')
     } catch (err) {
-      setError('No se pudo iniciar sesión. Intenta de nuevo.')
+      setError(err.message)
     } finally {
       setLoading(false)
     }

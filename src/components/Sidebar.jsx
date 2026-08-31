@@ -1,10 +1,12 @@
 import { Link, useLocation, useNavigate } from 'react-router'
+import { useAuth } from '../context/AuthContext'
+import { ROLES } from '../constants/roles'
 import {
   LayoutGrid, PenLine, UserCheck, Users, ClipboardList,
-  ListTodo, CalendarDays, Megaphone, FileBarChart, LogOut,
+  ListTodo, CalendarDays, Megaphone, FileBarChart, UserCircle, LogOut,
 } from 'lucide-react'
 
-const navItems = [
+const ADMIN_NAV = [
   { label: 'Control del Sistema', icon: LayoutGrid, path: '/dashboard' },
   { label: 'Marcar Entrada', icon: PenLine, path: '/marcar-entrada' },
   { label: 'Control de Ingreso', icon: UserCheck, path: '/control-ingreso' },
@@ -16,9 +18,22 @@ const navItems = [
   { label: 'Reportes', icon: FileBarChart, path: '/reportes' },
 ]
 
-export default function Sidebar({ userName = 'Administrador', userRole = 'Coordinador' }) {
+const STANDARD_NAV = [
+  { label: 'Marcar Entrada', icon: PenLine, path: '/marcar-entrada' },
+  { label: 'Tareas del Día', icon: ListTodo, path: '/tareas' },
+  { label: 'Calendario', icon: CalendarDays, path: '/calendario' },
+  { label: 'Comunicaciones', icon: Megaphone, path: '/comunicaciones' },
+  { label: 'Mi Perfil', icon: UserCircle, path: '/perfil' },
+]
+
+export default function Sidebar() {
   const location = useLocation()
-  const navigate = useNavigate() 
+  const navigate = useNavigate()
+  const { user, logout } = useAuth()
+
+  const navItems = user?.rol === 'ADMIN' ? ADMIN_NAV : STANDARD_NAV
+  const nombreCompleto = user ? `${user.nombre} ${user.apellido}` : ''
+  const rolLabel = user ? ROLES[user.rol]?.label : ''
 
   return (
     <aside className="w-64 min-h-screen bg-purple-950 text-white flex flex-col print:hidden">
@@ -50,15 +65,15 @@ export default function Sidebar({ userName = 'Administrador', userRole = 'Coordi
       <div className="px-4 py-4 border-t border-white/10">
         <div className="flex items-center gap-3 mb-3">
           <div className="w-9 h-9 rounded-full bg-purple-800 flex items-center justify-center text-sm font-bold">
-            {userName.charAt(0)}
+            {user?.nombre?.charAt(0)}
           </div>
           <div>
-            <p className="text-sm font-semibold leading-tight">{userName}</p>
-            <p className="text-xs text-purple-300">{userRole}</p>
+            <p className="text-sm font-semibold leading-tight">{nombreCompleto}</p>
+            <p className="text-xs text-purple-300">{rolLabel}</p>
           </div>
         </div>
         <button
-          onClick={() => navigate('/login')}
+          onClick={() => { logout(); navigate('/login') }}
           className="flex items-center gap-2 text-sm text-amber-400 hover:text-amber-300 font-medium"
         >
           <LogOut size={16} />

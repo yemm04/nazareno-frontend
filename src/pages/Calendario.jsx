@@ -1,17 +1,18 @@
 import { useState } from 'react'
 import { Users, MapPin, Video, Clock, ChevronLeft, ChevronRight, X, Search } from 'lucide-react'
 import { useMembers } from '../context/MembersContext'
-import { ROLES } from '../constants/roles'
 import { AREAS } from '../data/mockMembers'
 import { mockSchedule } from '../data/mockSchedule'
 import { DIAS_SEMANA, getWeekDates, formatWeekLabel, formatFullDate, isSameDay } from '../utils/dates'
 import ComingSoon from './ComingSoon'
 
-const HOURS = Array.from({ length: 14 }, (_, i) => 7 + i) // 07:00 a 20:00
+const HOURS = Array.from({ length: 14 }, (_, i) => 7 + i)
 
 export default function Calendario() {
   const { members } = useMembers()
-  const practicantes = members.filter((m) => m.rol === ROLES.PRACTICANTE.id)
+  // Ya no filtramos por rol — aparece cualquiera que tenga horario en
+  // mockSchedule, sea Practicante o Coordinador (así lo pediste para Yoshi).
+  const practicantes = members.filter((m) => mockSchedule.some((s) => s.codigo === m.codigo))
 
   const [view, setView] = useState('practicas')
   const [weekOffset, setWeekOffset] = useState(0)
@@ -24,23 +25,23 @@ export default function Calendario() {
   const today = new Date()
 
   const term = search.toLowerCase()
-  const filteredIds = practicantes
+  const filteredCodigos = practicantes
     .filter((m) => `${m.nombre} ${m.apellido}`.toLowerCase().includes(term))
     .filter((m) => areaFilter === 'TODAS' || m.area === areaFilter)
-    .map((m) => m.id)
+    .map((m) => m.codigo)
 
   const getDaySchedule = (diaKey) =>
     mockSchedule.filter(
-      (s) => s.dia === diaKey && filteredIds.includes(s.memberId) && (modalidadFilter === 'TODAS' || s.modalidad === modalidadFilter)
+      (s) => s.dia === diaKey && filteredCodigos.includes(s.codigo) && (modalidadFilter === 'TODAS' || s.modalidad === modalidadFilter)
     )
 
   const weekSchedule = DIAS_SEMANA.flatMap((d) => getDaySchedule(d.key))
-  const presencialIds = new Set(weekSchedule.filter((s) => s.modalidad === 'PRESENCIAL').map((s) => s.memberId))
-  const virtualIds = new Set(weekSchedule.filter((s) => s.modalidad === 'VIRTUAL').map((s) => s.memberId))
-  const totalIds = new Set(weekSchedule.map((s) => s.memberId))
+  const presencialCodigos = new Set(weekSchedule.filter((s) => s.modalidad === 'PRESENCIAL').map((s) => s.codigo))
+  const virtualCodigos = new Set(weekSchedule.filter((s) => s.modalidad === 'VIRTUAL').map((s) => s.codigo))
+  const totalCodigos = new Set(weekSchedule.map((s) => s.codigo))
   const diasActivos = DIAS_SEMANA.filter((d) => getDaySchedule(d.key).length > 0).length
 
-  const memberById = (id) => members.find((m) => m.id === id)
+  const memberByCodigo = (codigo) => members.find((m) => m.codigo === codigo)
 
   return (
     <>
@@ -60,9 +61,9 @@ export default function Calendario() {
       ) : (
         <>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-6 mb-5">
-            <StatCard icon={Users} value={totalIds.size} label="Total practicantes" />
-            <StatCard icon={MapPin} value={presencialIds.size} label="Presenciales" iconClass="text-green-600" />
-            <StatCard icon={Video} value={virtualIds.size} label="Virtuales" iconClass="text-blue-600" />
+            <StatCard icon={Users} value={totalCodigos.size} label="Total practicantes" />
+            <StatCard icon={MapPin} value={presencialCodigos.size} label="Presenciales" iconClass="text-green-600" />
+            <StatCard icon={Video} value={virtualCodigos.size} label="Virtuales" iconClass="text-blue-600" />
             <StatCard icon={Clock} value={diasActivos} label="Días activos" iconClass="text-amber-600" />
           </div>
 
@@ -170,7 +171,7 @@ export default function Calendario() {
             <DayDetailPanel
               day={selectedDay}
               entries={getDaySchedule(selectedDay.key)}
-              memberById={memberById}
+              memberByCodigo={memberByCodigo}
               onClose={() => setSelectedDay(null)}
             />
           )}
@@ -197,7 +198,7 @@ function NowLine() {
   const startHour = HOURS[0]
   const minutesFromStart = (now.getHours() - startHour) * 60 + now.getMinutes()
   if (minutesFromStart < 0 || minutesFromStart > HOURS.length * 60) return null
-  const top = (minutesFromStart / 60) * 56 // 56px = h-14
+  const top = (minutesFromStart / 60) * 56
 
   return (
     <div className="absolute left-0 right-0 flex items-center pointer-events-none" style={{ top: `${top}px` }}>
@@ -207,7 +208,7 @@ function NowLine() {
   )
 }
 
-function DayDetailPanel({ day, entries, memberById, onClose }) {
+function DayDetailPanel({ day, entries, memberByCodigo, onClose }) {
   const presenciales = entries.filter((e) => e.modalidad === 'PRESENCIAL')
   const virtuales = entries.filter((e) => e.modalidad === 'VIRTUAL')
   const horaInicio = entries.length ? entries.reduce((min, e) => (e.horaInicio < min ? e.horaInicio : min), entries[0].horaInicio) : null
@@ -232,17 +233,17 @@ function DayDetailPanel({ day, entries, memberById, onClose }) {
         {entries.length === 0 && <p className="text-sm text-gray-400 py-10 text-center">No hay practicantes programados este día.</p>}
 
         {presenciales.length > 0 && (
-          <DayGroup title="PRESENCIAL" count={presenciales.length} dotClass="bg-green-500" entries={presenciales} memberById={memberById} badgeClass="bg-green-100 text-green-700" badgeDot="bg-green-500" badgeLabel="Presencial" />
+          <DayGroup title="PRESENCIAL" count={presenciales.length} dotClass="bg-green-500" entries={presenciales} memberByCodigo={memberByCodigo} badgeClass="bg-green-100 text-green-700" badgeDot="bg-green-500" badgeLabel="Presencial" />
         )}
         {virtuales.length > 0 && (
-          <DayGroup title="VIRTUAL" count={virtuales.length} dotClass="bg-blue-500" entries={virtuales} memberById={memberById} badgeClass="bg-blue-100 text-blue-700" badgeDot="bg-blue-500" badgeLabel="Virtual" />
+          <DayGroup title="VIRTUAL" count={virtuales.length} dotClass="bg-blue-500" entries={virtuales} memberByCodigo={memberByCodigo} badgeClass="bg-blue-100 text-blue-700" badgeDot="bg-blue-500" badgeLabel="Virtual" />
         )}
       </div>
     </div>
   )
 }
 
-function DayGroup({ title, count, dotClass, entries, memberById, badgeClass, badgeDot, badgeLabel }) {
+function DayGroup({ title, count, dotClass, entries, memberByCodigo, badgeClass, badgeDot, badgeLabel }) {
   return (
     <div className="mb-6">
       <p className="flex items-center gap-2 text-xs font-bold text-gray-500 mb-3">
@@ -250,7 +251,7 @@ function DayGroup({ title, count, dotClass, entries, memberById, badgeClass, bad
       </p>
       <div className="space-y-3">
         {entries.map((e) => {
-          const m = memberById(e.memberId)
+          const m = memberByCodigo(e.codigo)
           if (!m) return null
           return (
             <div key={e.id} className="flex items-start gap-3">
