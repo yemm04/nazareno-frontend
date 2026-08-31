@@ -10,8 +10,6 @@ const HOURS = Array.from({ length: 14 }, (_, i) => 7 + i)
 
 export default function Calendario() {
   const { members } = useMembers()
-  // Ya no filtramos por rol — aparece cualquiera que tenga horario en
-  // mockSchedule, sea Practicante o Coordinador (así lo pediste para Yoshi).
   const practicantes = members.filter((m) => mockSchedule.some((s) => s.codigo === m.codigo))
 
   const [view, setView] = useState('practicas')
