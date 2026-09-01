@@ -100,68 +100,70 @@ export default function Calendario() {
             <button onClick={() => setWeekOffset(0)} className="text-sm font-medium border border-gray-200 rounded-lg px-3 py-1.5 hover:bg-gray-50">Hoy</button>
           </div>
 
-          <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-            <div className="grid grid-cols-[60px_repeat(7,1fr)] border-b border-gray-100">
-              <div />
-              {weekDates.map((d) => {
-                const entries = getDaySchedule(d.key)
-                const presCount = entries.filter((e) => e.modalidad === 'PRESENCIAL').length
-                const virtCount = entries.filter((e) => e.modalidad === 'VIRTUAL').length
-                const isToday = isSameDay(d.date, today)
-                const horaInicio = entries.length ? entries.reduce((min, e) => (e.horaInicio < min ? e.horaInicio : min), entries[0].horaInicio) : null
-                const horaFin = entries.length ? entries.reduce((max, e) => (e.horaFin > max ? e.horaFin : max), entries[0].horaFin) : null
+          <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden overflow-x-auto">
+            <div className="min-w-[640px]">
+              <div className="grid grid-cols-[60px_repeat(7,1fr)] border-b border-gray-100">
+                <div />
+                {weekDates.map((d) => {
+                  const entries = getDaySchedule(d.key)
+                  const presCount = entries.filter((e) => e.modalidad === 'PRESENCIAL').length
+                  const virtCount = entries.filter((e) => e.modalidad === 'VIRTUAL').length
+                  const isToday = isSameDay(d.date, today)
+                  const horaInicio = entries.length ? entries.reduce((min, e) => (e.horaInicio < min ? e.horaInicio : min), entries[0].horaInicio) : null
+                  const horaFin = entries.length ? entries.reduce((max, e) => (e.horaFin > max ? e.horaFin : max), entries[0].horaFin) : null
 
-                return (
-                  <button
-                    key={d.key}
-                    onClick={() => setSelectedDay(d)}
-                    className={`text-left px-3 py-3 border-l border-gray-100 hover:bg-gray-50 ${isToday ? 'bg-blue-50' : ''}`}
-                  >
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className="text-xs font-semibold text-gray-500">{d.label.toUpperCase()}</span>
-                      <span className={`text-sm font-bold w-6 h-6 flex items-center justify-center rounded-full ${isToday ? 'bg-blue-600 text-white' : 'text-gray-700'}`}>
-                        {d.date.getDate()}
-                      </span>
-                    </div>
-                    {entries.length === 0 ? (
-                      <>
-                        <p className="flex items-center gap-1 text-xs text-gray-400"><Users size={12} /> 0 Practicantes</p>
-                        <p className="text-xs italic text-gray-400 mt-1">Día libre</p>
-                      </>
-                    ) : (
-                      <div className="space-y-0.5 text-xs text-gray-500">
-                        <p className="flex items-center gap-1"><Users size={12} /> {entries.length} Practicantes</p>
-                        <p className="flex items-center gap-1"><MapPin size={12} className="text-green-600" /> {presCount} Presenciales</p>
-                        <p className="flex items-center gap-1"><Video size={12} className="text-blue-600" /> {virtCount} Virtuales</p>
-                        <p className="flex items-center gap-1"><Clock size={12} /> {horaInicio} - {horaFin}</p>
+                  return (
+                    <button
+                      key={d.key}
+                      onClick={() => setSelectedDay(d)}
+                      className={`text-left px-3 py-3 border-l border-gray-100 hover:bg-gray-50 ${isToday ? 'bg-blue-50' : ''}`}
+                    >
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-xs font-semibold text-gray-500">{d.label.toUpperCase()}</span>
+                        <span className={`text-sm font-bold w-6 h-6 flex items-center justify-center rounded-full ${isToday ? 'bg-blue-600 text-white' : 'text-gray-700'}`}>
+                          {d.date.getDate()}
+                        </span>
                       </div>
-                    )}
-                  </button>
-                )
-              })}
-            </div>
-
-            <div className="grid grid-cols-[60px_repeat(7,1fr)] max-h-[420px] overflow-y-auto">
-              <div>
-                {HOURS.map((h) => (
-                  <div key={h} className="h-14 flex items-start justify-end pr-2 text-xs text-gray-400 border-t border-gray-50">
-                    {String(h).padStart(2, '0')}:00
-                  </div>
-                ))}
+                      {entries.length === 0 ? (
+                        <>
+                          <p className="flex items-center gap-1 text-xs text-gray-400"><Users size={12} /> 0 Practicantes</p>
+                          <p className="text-xs italic text-gray-400 mt-1">Día libre</p>
+                        </>
+                      ) : (
+                        <div className="space-y-0.5 text-xs text-gray-500">
+                          <p className="flex items-center gap-1"><Users size={12} /> {entries.length} Practicantes</p>
+                          <p className="flex items-center gap-1"><MapPin size={12} className="text-green-600" /> {presCount} Presenciales</p>
+                          <p className="flex items-center gap-1"><Video size={12} className="text-blue-600" /> {virtCount} Virtuales</p>
+                          <p className="flex items-center gap-1"><Clock size={12} /> {horaInicio} - {horaFin}</p>
+                        </div>
+                      )}
+                    </button>
+                  )
+                })}
               </div>
-              {weekDates.map((d) => {
-                const isToday = isSameDay(d.date, today)
-                return (
-                  <div
-                    key={d.key}
-                    onClick={() => setSelectedDay(d)}
-                    className={`relative border-l border-gray-100 cursor-pointer ${isToday ? 'bg-blue-50/40' : ''}`}
-                  >
-                    {HOURS.map((h) => <div key={h} className="h-14 border-t border-gray-50" />)}
-                    {isToday && <NowLine />}
-                  </div>
-                )
-              })}
+
+              <div className="grid grid-cols-[60px_repeat(7,1fr)] max-h-[420px] overflow-y-auto">
+                <div>
+                  {HOURS.map((h) => (
+                    <div key={h} className="h-14 flex items-start justify-end pr-2 text-xs text-gray-400 border-t border-gray-50">
+                      {String(h).padStart(2, '0')}:00
+                    </div>
+                  ))}
+                </div>
+                {weekDates.map((d) => {
+                  const isToday = isSameDay(d.date, today)
+                  return (
+                    <div
+                      key={d.key}
+                      onClick={() => setSelectedDay(d)}
+                      className={`relative border-l border-gray-100 cursor-pointer ${isToday ? 'bg-blue-50/40' : ''}`}
+                    >
+                      {HOURS.map((h) => <div key={h} className="h-14 border-t border-gray-50" />)}
+                      {isToday && <NowLine />}
+                    </div>
+                  )
+                })}
+              </div>
             </div>
           </div>
 
