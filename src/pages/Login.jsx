@@ -47,19 +47,19 @@ return (
 
 {/* PANEL DERECHO */}
 
-<div className="w-full lg:w-1/2 min-h-[calc(100vh-48px)] flex items-center justify-center bg-white px-8">
+<div className="w-full lg:w-1/2 min-h-screen flex items-center justify-center bg-white px-5 py-8 sm:px-8">
 
   <div className="w-full max-w-md">
 
     {/* ENCABEZADO */}
     <div className="mb-10">
 
-      <div className="flex items-center justify-between gap-6">
+      <div className="flex items-center justify-between gap-3 sm:gap-6">
 
         {/* TÍTULO */}
         <div>
 
-          <h2 className="text-4xl font-extrabold text-purple-950 leading-tight">
+          <h2 className="text-3xl sm:text-4xl font-extrabold text-purple-950 leading-tight">
             PORTAL DE
             <br />
             <span className="text-amber-500">
@@ -73,7 +73,7 @@ return (
         <img
           src="/logo-nazareno.png"
           alt="Logo Colegio El Nazareno"
-          className="w-20 h-20 object-contain flex-shrink-0"
+          className="w-16 h-16 sm:w-20 sm:h-20 object-contain flex-shrink-0"
         />
 
       </div>
