@@ -4,7 +4,12 @@ const AttendanceContext = createContext(null)
 const API_URL = import.meta.env.VITE_API_URL
 
 export function todayISO() {
-  return new Date().toISOString().slice(0, 10)
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'America/Lima',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(new Date())
 }
 
 // El backend devuelve el usuario completo anidado (r.usuario.id) por la
