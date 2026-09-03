@@ -39,7 +39,7 @@ export function buildAttendanceReport({ members, schedule, records, desde, hasta
   const filteredMembers = members.filter((m) => areaFilter === 'TODAS' || m.area === areaFilter)
 
   return filteredMembers.map((member) => {
-    const memberSchedule = schedule.filter((s) => s.memberId === member.id && matchesHorario(s, horarioFilter))
+    const memberSchedule = schedule.filter((s) => s.codigo === member.codigo && matchesHorario(s, horarioFilter))
     let pres = 0, aus = 0, tard = 0
     const perm = 0 // sin módulo de permisos todavía — placeholder para cuando exista
 
